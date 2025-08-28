@@ -1,40 +1,74 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-cn">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Markdown to HTML Converter</title>
+    <title>简单 Markdown 转 HTML</title>
     <style>
-        body {
-            font-family: Arial， sans-serif;
-            margin: 20px;
-        }
-        textarea {
-            width: 100%;
-            height: 200px;
-            margin-bottom: 10px;
-        }
-        #output {
-            white-space: pre-wrap;
-            background-color: #f9f9f9;
-            border: 1px solid #ddd;
-            padding: 10px;
-        }
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        textarea { width: 100%; height: 200px; font-size: 16px; }
+        #output { border: 1px solid #ccc; padding: 20px; margin-top: 20px; background: #fafafa; }
+        button { padding: 8px 20px; font-size: 16px; margin-top: 10px; }
     </style>
 </head>
 <body>
-    <h1>Markdown to HTML Converter</h1>
-    <textarea id="markdown" placeholder="Enter your Markdown text here..."></textarea>
-    <button onclick="convertMarkdown()">Convert</button>
-    <h2>HTML Output</h2>
+    <h1>Markdown 转 HTML（简易版）</h1>
+    <textarea id="md" placeholder="在这里输入 Markdown 内容..."></textarea>
+    <br>
+    <button onclick="convert()">转换为 HTML</button>
+    <h2>转换结果：</h2>
     <div id="output"></div>
-
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script>
-        function convertMarkdown() {
-            const markdownText = document.getElementById('markdown').value;
-            const htmlOutput = marked(markdownText);
-            document.getElementById('output').innerHTML = htmlOutput;
+        function escapeHtml(text) {
+            return text.replace(/[&<>"']/g, function(m) {
+                return ({
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;'，
+                    "'": '&#39;'
+                })[m];
+            });
+        }
+        function md2html(md) {
+            // 处理标题
+            md = md.替换(/^###### (.*)$/gm， '<h6>$1</h6>');
+            md = md。替换(/^##### (.*)$/gm， '<h5>$1</h5>');
+            md = md。替换(/^#### (.*)$/gm， '<h4>$1</h4>');
+            md = md.替换(/^### (.*)$/gm， '<h3>$1</h3>');
+            md = md.replace(/^## (.*)$/gm, '<h2>$1</h2>');
+            md = md.替换(/^# (.*)$/gm, '<h1>$1</h1>');
+            // 处理粗体
+            md = md.替换(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            // 处理斜体
+            md = md.replace(/\*(.*?)\*/g, '<em>$1</em>');
+            // 处理无序列表
+            md = md.replace(/^\s*[-*+] (.*)$/gm, '<li>$1</li>');
+            md = md.replace(/(<li>.*<\/li>)/gms, '<ul>$1</ul>');
+            // 处理有序列表
+            md = md.replace(/^\s*\d+\. (.*)$/gm, '<li>$1</li>');
+            md = md.replace(/(<li>.*<\/li>)/gms, function(match) {
+                // 如果前面不是<ul>，则包裹<ol>
+                if (!match.startsWith('<ul>')) return '<ol>' + match + '</ol>';
+                return match;
+            });
+            // 处理代码块
+            md = md.replace(/```([\s\S]*?)```/g, function(match, p1) {
+                return '<pre><code>' + escapeHtml(p1) + '</code></pre>';
+            });
+            // 处理行内代码
+            md = md.replace(/`([^`]+)`/g, '<code>$1</code>');
+            // 处理换行
+            md = md.replace(/\n{2,}/g, '</p><p>');
+            md = '<p>' + md + '</p>';
+            // 处理链接
+            md = md.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
+            // 去除多余的<p>包裹在块级元素外
+            md = md.replace(/<p>(<(h\d|ul|ol|pre)[\s\S]*?<\/\2>)<\/p>/g, '$1');
+            return md;
+        }
+        function convert() {
+            const mdText = document.getElementById('md').value;
+            document.getElementById('output').innerHTML = md2html(mdText);
         }
     </script>
 </body>
