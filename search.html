@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="UTF-8">
+    <title>题目搜索 - mcnoch-oj</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        input[type="text"] { width: 300px; padding: 8px; }
+        ul { list-style: none; padding: 0; }
+        li { margin: 8px 0; }
+        a { text-decoration: none; color: #0078d4; }
+        a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <h1>题目搜索</h1>
+    <input type="text" id="search" placeholder="输入题号或关键词..." autofocus>
+    <ul id="result"></ul>
+
+    <script>
+        // 题库数据，可自行扩展
+        const 题库 = [
+            { id: "P123", name: "计算组合数", url: "/tijie/1.html" },
+            { id: "P125", name: "计算阶乘", url: "/tijie/2.html" },
+            { id: "P126", name: "计算斐波那契数列", url: "/tijie/3.html" },
+            { id: "P127", name: "计算最大公约数和最小公倍数", url: "/tijie/4.html" },
+            { id: "P128", name: "计算排列数", url: "/tijie/5.html" },
+            { id: "P129", name: "计算二项式系数", url: "/tijie/6.html" },
+            { id: "P130", name: "计算多项式的值", url: "/tijie/7.html" },
+            { id: "P131", name: "计算矩阵的乘法", url: "/tijie/8.html" },
+            { id: "P132", name: "计算矩阵的转置", url: "/tijie/9.html" },
+            { id: "P133", name: "计算矩阵的行列式", url: "/tijie/10.html" },
+            { id: "P134", name: "计算矩阵的逆", url: "/tijie/11.html" },
+            { id: "P135", name: "计算向量的点积", url: "/tijie/12.html" },
+            { id: "P136", name: "计算向量的叉积", url: "/tijie/13.html" },
+            { id: "P137", name: "计算向量的模长", url: "/tijie/14.html" }
+        ];
+
+        const searchInput = document.getElementById('search');
+        const resultList = document.getElementById('result');
+
+        function search() {
+            const keyword = searchInput.value.trim().toLowerCase();
+            resultList.innerHTML = '';
+            if (!keyword) return;
+            const results = 题库.filter(item =>
+                item.id.toLowerCase().includes(keyword) ||
+                item.name.toLowerCase().includes(keyword)
+            );
+            if (results.length === 0) {
+                resultList.innerHTML = '<li>未找到相关题目</li>';
+            } else {
+                results.forEach(item => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `<a href="${item.url}">${item.id}. ${item.name}</a>`;
+                    resultList.appendChild(li);
+                });
+            }
+        }
+
+        searchInput.addEventListener('input', search);
+    </script>
+</body>
+</html>
