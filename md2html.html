@@ -1,74 +1,82 @@
 <!DOCTYPE html>
-<html lang="zh-cn">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>简单 Markdown 转 HTML</title>
+    <title>Markdown 到 HTML 转换器</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 40px; }
-        textarea { width: 100%; height: 200px; font-size: 16px; }
-        #output { border: 1px solid #ccc; padding: 20px; margin-top: 20px; background: #fafafa; }
-        button { padding: 8px 20px; font-size: 16px; margin-top: 10px; }
+        body {
+            font-family: Arial， sans-serif;
+            margin: 20px;
+        }
+        #markdown-editor, #html-output {
+            width: 100%;
+            height: 300px;
+            margin-top: 10px;
+        }
+        #markdown-editor {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 20px;
+        }
+        #html-output {
+            border: 1px solid #ccc;
+            padding: 10px;
+            overflow-y: auto;
+            background-color: #f9f9f9;
+        }
     </style>
 </head>
 <body>
-    <h1>Markdown 转 HTML（简易版）</h1>
-    <textarea id="md" placeholder="在这里输入 Markdown 内容..."></textarea>
-    <br>
-    <button onclick="convert()">转换为 HTML</button>
-    <h2>转换结果：</h2>
-    <div id="output"></div>
+    <h1>Markdown 到 HTML 转换器</h1>
+    <textarea id="markdown-editor" placeholder="在这里输入Markdown内容..."></textarea>
+    <div id="html-output"></div>
+
     <script>
-        function escapeHtml(text) {
-            return text.replace(/[&<>"']/g, function(m) {
-                return ({
-                    '&': '&amp;',
-                    '<': '&lt;',
-                    '>': '&gt;',
-                    '"': '&quot;'，
-                    "'": '&#39;'
-                })[m];
-            });
-        }
-        function md2html(md) {
-            // 处理标题
-            md = md.替换(/^###### (.*)$/gm， '<h6>$1</h6>');
-            md = md。替换(/^##### (.*)$/gm， '<h5>$1</h5>');
-            md = md。替换(/^#### (.*)$/gm， '<h4>$1</h4>');
-            md = md.替换(/^### (.*)$/gm， '<h3>$1</h3>');
-            md = md.replace(/^## (.*)$/gm, '<h2>$1</h2>');
-            md = md.替换(/^# (.*)$/gm, '<h1>$1</h1>');
-            // 处理粗体
-            md = md.替换(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-            // 处理斜体
-            md = md.replace(/\*(.*?)\*/g, '<em>$1</em>');
-            // 处理无序列表
-            md = md.replace(/^\s*[-*+] (.*)$/gm, '<li>$1</li>');
-            md = md.replace(/(<li>.*<\/li>)/gms, '<ul>$1</ul>');
-            // 处理有序列表
-            md = md.replace(/^\s*\d+\. (.*)$/gm, '<li>$1</li>');
-            md = md.replace(/(<li>.*<\/li>)/gms, function(match) {
-                // 如果前面不是<ul>，则包裹<ol>
-                if (!match.startsWith('<ul>')) return '<ol>' + match + '</ol>';
-                return match;
-            });
-            // 处理代码块
-            md = md.replace(/```([\s\S]*?)```/g, function(match, p1) {
-                return '<pre><code>' + escapeHtml(p1) + '</code></pre>';
-            });
-            // 处理行内代码
-            md = md.replace(/`([^`]+)`/g, '<code>$1</code>');
-            // 处理换行
-            md = md.replace(/\n{2,}/g, '</p><p>');
-            md = '<p>' + md + '</p>';
-            // 处理链接
-            md = md.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
-            // 去除多余的<p>包裹在块级元素外
-            md = md.replace(/<p>(<(h\d|ul|ol|pre)[\s\S]*?<\/\2>)<\/p>/g, '$1');
-            return md;
-        }
-        function convert() {
-            const mdText = document.getElementById('md').value;
-            document.getElementById('output').innerHTML = md2html(mdText);
+        const markdownEditor = document.getElementById('markdown-editor');
+        const htmlOutput = document.getElementById('html-output');
+
+        markdownEditor.addEventListener('input', function() {
+            const markdownContent = markdownEditor.value;
+            const htmlContent = convertMarkdownToHTML(markdownContent);
+            htmlOutput.innerHTML = htmlContent;
+        });
+
+        function convertMarkdownToHTML(markdown) {
+            // 转换标题
+            let html = markdown.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+            html = html.replace(/^## (.+)$/gm, '<h2>$2</h2>');
+            html = html.replace(/^### (.+)$/gm, '<h3>$3</h3>');
+            html = html.replace(/^#### (.+)$/gm, '<h4>$4</h4>');
+            html = html.replace(/^##### (.+)$/gm, '<h5>$5</h5>');
+            html = html.replace(/^###### (.+)$/gm, '<h6>$6</h6>');
+
+            // 转换段落
+            html = html.replace(/^(?!#|\*|\-|\d\.)(.*)$/gm, '<p>$1</p>');
+
+            // 转换无序列表
+            html = html.replace(/^\* (.+)$/gm, '<li>$1</li>');
+            html = html.replace(/^- (.+)$/gm, '<li>$1</li>');
+            html = html.replace(/<li>(?!<\/ul>)/g, '<ul><li>').replace(/<\/li>(?!<\/ul>)/g, '</li></ul>');
+
+            // 转换有序列表
+            html = html.replace(/^(\d+)\. (.+)$/gm, '<li>$2</li>');
+            html = html.replace(/<li>(?!<\/ol>)/g, '<ol><li>').replace(/<\/li>(?!<\/ol>)/g, '</li></ol>');
+
+            // 转换链接
+            html = html.replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2">$1</a>');
+
+            // 转换粗体
+            html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            html = html.replace(/__(.*?)__/g, '<strong>$1</strong>');
+
+            // 转换斜体
+            html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+            html = html.replace(/_(.*?)_/g, '<em>$1</em>');
+
+            // 转换换行
+            html = html.replace(/\n/g, '<br>');
+
+            return html;
         }
     </script>
 </body>
